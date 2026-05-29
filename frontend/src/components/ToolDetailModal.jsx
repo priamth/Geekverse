@@ -54,21 +54,24 @@ export default function ToolDetailModal({ tool, category, open, onOpenChange, on
                 <DialogTitle className="font-display text-2xl">
                   {tool.name}
                 </DialogTitle>
-                <DialogDescription>
-                  <span className="cat-chip" style={{ "--cat-color": color }}>
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ background: color }}
-                    />
-                    {category?.name || tool.category_slug}
-                  </span>
-                  {tool.is_open_source && (
-                    <Badge variant="outline" className="ml-2 font-mono text-[10px] uppercase">
-                      Open Source
-                    </Badge>
-                  )}
+                <DialogDescription className="sr-only">
+                  {category?.name || tool.category_slug} tool details
                 </DialogDescription>
               </DialogHeader>
+              <div className="flex flex-wrap items-center gap-2 mt-2">
+                <span className="cat-chip" style={{ "--cat-color": color }}>
+                  <span
+                    className="w-1.5 h-1.5 rounded-full"
+                    style={{ background: color }}
+                  />
+                  {category?.name || tool.category_slug}
+                </span>
+                {tool.is_open_source && (
+                  <Badge variant="outline" className="font-mono text-[10px] uppercase">
+                    Open Source
+                  </Badge>
+                )}
+              </div>
             </div>
           </div>
         </div>
