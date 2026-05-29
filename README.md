@@ -69,3 +69,7 @@ You do not need a terminal to use the site normally. However, if you use Cursor 
 docker compose down && docker compose up --build -d
 ```
 
+##Cursor Prompt:
+ ```  Look at my frontend and backend files. My React frontend is calling relative URLs like "/categories" and "/stats" which default to port 3000. My FastAPI Python backend is running on port 8000 and expects "/api/categories". Please fix my frontend Axios configuration base URL or my docker-compose setup so all frontend API requests are automatically forwarded to http://localhost:8000/api without changing my backend routers back and forth. ```
+
+
