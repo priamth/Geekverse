@@ -1,3 +1,6 @@
+<img width="1920" height="900" alt="image-1780052115695" src="https://github.com/user-attachments/assets/acb7ccf4-7fa0-42ff-abc6-cf2b32cfbb55" />
+<img width="1920" height="1000" alt="image-1780052105969" src="https://github.com/user-attachments/assets/a3cb39d4-6f01-42cf-afa3-9b543e0c1d81" />
+<img width="1920" height="1000" alt="image-1780052101663" src="https://github.com/user-attachments/assets/a5a693b3-e9a1-4df2-b67e-bf4b50f39b95" />
 # Geekverse Full-Stack Application
 
 Geekverse is a full-stack hub containing a React frontend, a Python FastAPI backend, and a MongoDB database. This repository has been fully modernized and containerized to completely wipe out environment bugs, package clashing, and network communication issues.
