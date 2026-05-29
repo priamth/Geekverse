@@ -22,10 +22,13 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
-          <footer className="border-t border-border py-6 text-center text-xs font-mono text-muted-foreground">
-            <span data-testid="footer-tag">
+          <footer className="border-t border-border py-6 text-center text-xs font-mono text-muted-foreground space-y-1">
+            <div data-testid="footer-tag">
               GEEKVERSE.LOCAL // built by curious humans · {new Date().getFullYear()}
-            </span>
+            </div>
+            <div data-testid="footer-copyright">
+              © 2026 pTriangle by posay. All rights reserved. Made in Romania ʀᴏ
+            </div>
           </footer>
           <SettingsMenu />
           <Toaster />

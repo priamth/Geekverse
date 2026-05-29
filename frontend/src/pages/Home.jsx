@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Search, ArrowUpDown, Sparkles, Layers } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -9,19 +9,29 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 import ToolCard from "@/components/ToolCard";
 import ToolDetailModal from "@/components/ToolDetailModal";
 import { fetchCategories, fetchTools, fetchStats } from "@/lib/api";
+import { useTheme, THEMES } from "@/context/ThemeContext";
+
+const KONAMI = [
+  "ArrowUp","ArrowUp","ArrowDown","ArrowDown",
+  "ArrowLeft","ArrowRight","ArrowLeft","ArrowRight",
+  "b","a",
+];
 
 export default function Home() {
+  const t = useTheme();
   const [categories, setCategories] = useState([]);
   const [tools, setTools] = useState([]);
   const [stats, setStats] = useState({ tools: 0, categories: 0, total_clicks: 0 });
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
-  const [sort, setSort] = useState("relevance");
+  const [category, setCategory] = useState(t.defaultCategory || "all");
+  const [sort, setSort] = useState(t.defaultSort || "relevance");
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
+  const konamiBuf = useRef([]);
 
   // Load categories + stats once
   useEffect(() => {
@@ -35,14 +45,34 @@ export default function Home() {
 
   // Load tools whenever filters change (debounce search)
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setLoading(true);
       fetchTools({ search: search || undefined, category, sort })
         .then((data) => setTools(data))
         .finally(() => setLoading(false));
     }, 200);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [search, category, sort]);
+
+  // Konami easter egg
+  useEffect(() => {
+    if (!t.easterEggs) return;
+    const onKey = (e) => {
+      const buf = konamiBuf.current;
+      buf.push(e.key);
+      if (buf.length > KONAMI.length) buf.shift();
+      if (buf.length === KONAMI.length && buf.every((k, i) => k === KONAMI[i])) {
+        const next = THEMES[Math.floor(Math.random() * THEMES.length)];
+        t.setTheme(next);
+        toast.success(`▌ KONAMI ACTIVATED — theme: ${next}`, {
+          description: "you found the cheat code, geek.",
+        });
+        konamiBuf.current = [];
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [t.easterEggs, t]);
 
   const catMap = useMemo(
     () => Object.fromEntries(categories.map((c) => [c.slug, c])),
@@ -64,9 +94,11 @@ export default function Home() {
       {/* HERO */}
       <section className="hero-scan border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-14">
-          <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary mb-4">
-            // ultimate toolbox · {stats.tools} entries · {stats.total_clicks} clicks
-          </div>
+          {t.showHeroStats && (
+            <div className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary mb-4">
+              // ultimate toolbox · {stats.tools} entries · {stats.categories} cats · {stats.total_clicks} clicks
+            </div>
+          )}
           <h1 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] max-w-3xl">
             Every tool a computer geek <br />
             <span className="text-primary">should already have</span>.
@@ -77,7 +109,7 @@ export default function Home() {
           </p>
 
           {/* Search + Sort */}
-          <div className="mt-8 grid sm:grid-cols-[1fr_auto_auto] gap-3 max-w-3xl">
+          <div className="mt-8 grid sm:grid-cols-[1fr_auto] gap-3 max-w-3xl">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -175,12 +207,12 @@ export default function Home() {
               data-testid="tools-grid"
               className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
             >
-              {tools.map((t) => (
+              {tools.map((tool) => (
                 <ToolCard
-                  key={t.id}
-                  tool={t}
-                  category={catMap[t.category_slug]}
-                  onClick={() => setSelected(t)}
+                  key={tool.id}
+                  tool={tool}
+                  category={catMap[tool.category_slug]}
+                  onClick={() => setSelected(tool)}
                 />
               ))}
             </div>

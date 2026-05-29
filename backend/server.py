@@ -97,33 +97,42 @@ def _clean(doc):
 
 # ---------- Seeding ----------
 async def seed_db():
-    cat_count = await db.categories.count_documents({})
-    if cat_count == 0:
-        await db.categories.insert_many([dict(c) for c in SEED_CATEGORIES])
-        logging.info(f"Seeded {len(SEED_CATEGORIES)} categories")
+    # Upsert categories (by slug) — preserves existing, adds new
+    for c in SEED_CATEGORIES:
+        await db.categories.update_one(
+            {"slug": c["slug"]},
+            {"$set": {
+                "name": c["name"],
+                "color": c["color"],
+                "description": c["description"],
+            }, "$setOnInsert": {"id": c["id"], "slug": c["slug"]}},
+            upsert=True,
+        )
 
-    tool_count = await db.tools.count_documents({})
-    if tool_count == 0:
-        docs = []
-        for t in SEED_TOOLS:
-            doc = {
-                "id": str(uuid.uuid4()),
-                "name": t["name"],
-                "category_slug": t["category_slug"],
-                "description": t["description"],
-                "alternative_uses": t.get("alternative_uses", []),
-                "download_url": t["download_url"],
-                "homepage_url": t.get("homepage_url"),
-                "icon": t.get("icon", "Wrench"),
-                "popularity": t.get("popularity", 50),
-                "click_count": 0,
-                "is_open_source": t.get("is_open_source", False),
-                "platforms": t.get("platforms", []),
-                "created_at": datetime.now(timezone.utc).isoformat(),
-            }
-            docs.append(doc)
-        await db.tools.insert_many(docs)
-        logging.info(f"Seeded {len(docs)} tools")
+    # Upsert tools (by name) — preserves click_count, adds new
+    existing_names = {t["name"] for t in await db.tools.find({}, {"name": 1, "_id": 0}).to_list(5000)}
+    new_docs = []
+    for t in SEED_TOOLS:
+        if t["name"] in existing_names:
+            continue
+        new_docs.append({
+            "id": str(uuid.uuid4()),
+            "name": t["name"],
+            "category_slug": t["category_slug"],
+            "description": t["description"],
+            "alternative_uses": t.get("alternative_uses", []),
+            "download_url": t["download_url"],
+            "homepage_url": t.get("homepage_url"),
+            "icon": t.get("icon", "Wrench"),
+            "popularity": t.get("popularity", 50),
+            "click_count": 0,
+            "is_open_source": t.get("is_open_source", False),
+            "platforms": t.get("platforms", []),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+        })
+    if new_docs:
+        await db.tools.insert_many(new_docs)
+        logging.info(f"Seeded {len(new_docs)} new tools (total in seed: {len(SEED_TOOLS)})")
 
 
 # ---------- Routes ----------
